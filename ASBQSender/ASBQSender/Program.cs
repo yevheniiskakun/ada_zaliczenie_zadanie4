@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-namespace MessagePublisher
+namespace ASBQSender
 {
     public class Program
     {
@@ -28,25 +28,15 @@ namespace MessagePublisher
             client = new ServiceBusClient(serviceBusConnectionString);
             sender = client.CreateSender(queueName);
 
-            /* To create a "ServiceBusMessageBatch" object that will allow you to combine
-               multiple messages into a batch by using the "TryAddMessage" method */
-            using ServiceBusMessageBatch messageBatch = await sender.CreateMessageBatchAsync();
-
-            /* To add messages to a batch and throw an exception if a message
-               size exceeds the limits supported by the batch */
+            /* Sending messages one by one */
             int i = 0;
             while (true)
             {
-                if (!messageBatch.TryAddMessage(new ServiceBusMessage($"Message {i}")))
-                {
-                    throw new Exception($"The message {i} is too large to fit in the batch.");
-                }
-                
-                await sender.SendMessagesAsync(messageBatch);
-                Console.WriteLine(i.ToString());
+                await sender.SendMessageAsync(new ServiceBusMessage($"Message {i}"));
+                Console.WriteLine("Sending: Message " + i.ToString());
 
                 i++;
-                Thread.Sleep(300);
+                Thread.Sleep(500);
             }
         }
     }
